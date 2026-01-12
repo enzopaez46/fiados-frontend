@@ -8,6 +8,11 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
   "dependencies": {
     "next": "16.1.1",
     "react": "19.2.3",
