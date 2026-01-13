@@ -29,12 +29,6 @@ export default function CustomerDetailPage() {
   const [description, setDescription] = useState('')
 
   useEffect(() => {
-    //console.log(isAuthenticated)
-    if (!isAuthenticated) {
-        router.push('/login')
-        return
-    }
-    
     async function loadData() {
       try {
         const [cust, txs] = await Promise.all([

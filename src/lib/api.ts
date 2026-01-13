@@ -1,31 +1,22 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+import { api } from '@/src/utils/interceptor'; // tu instancia de axios
 
 export async function apiFetch(
   endpoint: string,
-  options: RequestInit = {}
+  options: {
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    data?: any;
+    params?: any;
+    headers?: Record<string, string>;
+  } = {}
 ) {
-  //console.log('API FETCH TO:', `${API_URL}${endpoint}`)
-  //console.log('OPTIONS:', options)
-  const token =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('accessToken')
-      : null
+  const response = await api.request({
+    url: endpoint,
+    method: options.method ?? 'GET',
+    data: options.data,
+    params: options.params,
+    headers: options.headers,
+  });
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-  })
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}))
-    throw new Error(error.detail || 'API Error')
-  }
-
-  return res.json()
+  return response.data;
 }
-
 

@@ -20,6 +20,6 @@ export function createTransaction(
 ) {
   return apiFetch(`/customers/${customerId}/transactions/`, {
     method: 'POST',
-    body: JSON.stringify(data),
+    data,
   })
 }

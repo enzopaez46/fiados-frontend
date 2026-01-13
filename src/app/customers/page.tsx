@@ -15,11 +15,6 @@ export default function CustomersPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login')
-      return
-    }
-
     async function loadCustomers() {
       try {
         const data = await getCustomers()
@@ -38,8 +33,8 @@ export default function CustomersPage() {
     loadCustomers()
   }, [isAuthenticated, router, logout])
 
-  if (!isAuthenticated) return null
   if (loading) return <p>Cargando customers...</p>
+  if (!isAuthenticated) return null
   if (error) return <p>Error: {error}</p>
 
   return (

@@ -21,7 +21,7 @@ export default function LoginPage() {
         try {
             const data = await apiFetch('/auth/login/', {
                 method: 'POST',
-                body: JSON.stringify({ username, password }),
+                data: { username, password },
             })
 
             localStorage.setItem('accessToken', data.access)
