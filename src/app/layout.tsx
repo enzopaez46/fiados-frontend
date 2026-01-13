@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AuthProvider } from "@/src/contexts/AuthContext";
-//import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Fiados App",

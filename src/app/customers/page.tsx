@@ -1,56 +1,64 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { getCustomers } from '@/src/services/customers'
-import { CustomerData } from '@/src/interfaces/customer'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { getCustomers } from "@/services/customers";
+import { CustomerData } from "@/interfaces/customer";
+import CustomersTable from "@/components/customers-table";
+import { TableSkeleton } from "@/components/lib/table-skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CustomersPage() {
-  const { isAuthenticated, logout } = useAuth()
-  const router = useRouter()
+  const { isAuthenticated, logout } = useAuth();
+  const router = useRouter();
 
-  const [customers, setCustomers] = useState<CustomerData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadCustomers() {
       try {
-        const data = await getCustomers()
-        setCustomers(data)
+        const data = await getCustomers();
+        setCustomers(data);
       } catch (err: any) {
-        if (err.message === 'Unauthorized') {
-          logout()
+        if (err.message === "Unauthorized") {
+          logout();
         } else {
-          setError(err.message)
+          setError(err.message);
         }
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadCustomers()
-  }, [isAuthenticated, router, logout])
+    loadCustomers();
+  }, [isAuthenticated, router, logout]);
 
-  if (loading) return <p>Cargando customers...</p>
-  if (!isAuthenticated) return null
-  if (error) return <p>Error: {error}</p>
+  if (!isAuthenticated) return null;
+  if (error) return <p>Error: {error}</p>;
 
   return (
-    <main>
-      <h1>Customers</h1>
-
-      <button onClick={logout}>Cerrar sesión</button>
-
-      <ul>
-        {customers.map((customer) => (
-          <li key={customer.id}>
-            <strong>{customer.name}</strong> — Deuda: ${customer.debt}
-            <button onClick={() => router.push(`/customers/${customer.id}/`)}>Detalle</button>
-          </li>
-        ))}
-      </ul>
-    </main>
-  )
+    <>
+      <div className="flex min-h-screen mx-4 md:mx-6 lg:mx-10 my-8">
+        <div className="flex-grow w-full">
+          <Card>
+            <CardHeader>
+              <CardTitle>Clientes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading && <TableSkeleton columns={6} rows={10} />}
+              {!loading && (
+                <CustomersTable
+                  customers={customers}
+                  onClickItem={(id) => router.push(`/customers/${id}/`)}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
 }

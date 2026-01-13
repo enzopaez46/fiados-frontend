@@ -1,7 +1,7 @@
 'use client';
 // todavia no esta en uso
 
-import { useAuth } from '@/src/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
