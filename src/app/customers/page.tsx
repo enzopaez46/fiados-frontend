@@ -8,6 +8,7 @@ import { CustomerData } from "@/interfaces/customer";
 import CustomersTable from "@/components/customers-table";
 import { TableSkeleton } from "@/components/lib/table-skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Topbar } from "@/components/lib/topbar";
 
 export default function CustomersPage() {
   const { isAuthenticated, logout } = useAuth();
