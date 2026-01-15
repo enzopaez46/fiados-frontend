@@ -1,39 +1,54 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   getCustomer,
   getCustomerTransactions,
   createTransaction,
-} from '@/services/customer-detail'
-import { CustomerData } from '@/interfaces/customer'
-import { TransactionData } from '@/interfaces/transaction'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { AlertCircle } from 'lucide-react'
+} from "@/services/customer-detail";
+import { CustomerData } from "@/interfaces/customer";
+import { TransactionData } from "@/interfaces/transaction";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { AlertCircle } from "lucide-react";
+import { useSnackbar } from "notistack";
 
 export default function CustomerDetailPage() {
-  const { id } = useParams()
-  const customerId = Number(id)
+  const { id } = useParams();
+  const customerId = Number(id);
 
-  const { isAuthenticated, logout } = useAuth()
-  const router = useRouter()
+  const { isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
-  const [customer, setCustomer] = useState<CustomerData | null>(null)
-  const [transactions, setTransactions] = useState<TransactionData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [customer, setCustomer] = useState<CustomerData | null>(null);
+  const [transactions, setTransactions] = useState<TransactionData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // formulario
-  const [type, setType] = useState<'COMPRA' | 'PAGO'>('COMPRA')
-  const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('')
+  const [type, setType] = useState<"COMPRA" | "PAGO">("COMPRA");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     async function loadData() {
@@ -41,47 +56,54 @@ export default function CustomerDetailPage() {
         const [cust, txs] = await Promise.all([
           getCustomer(customerId),
           getCustomerTransactions(customerId),
-        ])
+        ]);
 
-        setCustomer(cust)
-        setTransactions(txs)
+        setCustomer(cust);
+        setTransactions(txs);
       } catch (err: any) {
-        if (err.message === 'Unauthorized') {
-          logout()
+        if (err.message === "Unauthorized") {
+          logout();
         } else {
-          setError(err.message)
+          setError(err.message);
         }
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadData()
-  }, [isAuthenticated, customerId, router, logout])
+    loadData();
+  }, [isAuthenticated, customerId, router, logout]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
 
-    await createTransaction(customerId, {
-      type,
-      amount: Number(amount),
-      description: description || undefined,
-    })
+    try {
+      await createTransaction(customerId, {
+        type,
+        amount: Number(amount),
+        description: description || undefined,
+      });
+      // recargar movimientos y customer
+      const [cust, txs] = await Promise.all([
+        getCustomer(customerId),
+        getCustomerTransactions(customerId),
+      ]);
 
-    // recargar movimientos y customer
-    const [cust, txs] = await Promise.all([
-      getCustomer(customerId),
-      getCustomerTransactions(customerId),
-    ])
+      setCustomer(cust);
+      setTransactions(txs);
 
-    setCustomer(cust)
-    setTransactions(txs)
-
-    setAmount('')
-    setDescription('')
+      setAmount("");
+      setDescription("");
+      enqueueSnackbar("Movimiento creado con éxito", { variant: "success" });
+    } catch (err: any) {
+      console.error(err);
+      enqueueSnackbar(err.message || "Error al crear el movimiento", {
+        variant: "error",
+      });
+    }
   }
 
-  if (!isAuthenticated) return null
+  if (!isAuthenticated) return null;
   if (loading) {
     return (
       <main className="container mx-auto py-8 px-4">
@@ -90,7 +112,7 @@ export default function CustomerDetailPage() {
           <div className="h-6 bg-gray-200 rounded w-64 animate-pulse" />
         </div>
       </main>
-    )
+    );
   }
   if (error) {
     return (
@@ -105,9 +127,9 @@ export default function CustomerDetailPage() {
           </CardContent>
         </Card>
       </main>
-    )
+    );
   }
-  if (!customer) return null
+  if (!customer) return null;
 
   return (
     <main className="container mx-auto py-8 px-4">
@@ -124,7 +146,9 @@ export default function CustomerDetailPage() {
             <CardTitle>Estado de Deuda</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-red-600">${customer.debt.toLocaleString('es-AR')}</div>
+            <div className="text-4xl font-bold text-red-600">
+              ${customer.debt.toLocaleString("es-AR")}
+            </div>
             <p className="text-gray-600 text-sm mt-2">Deuda actual</p>
           </CardContent>
         </Card>
@@ -138,7 +162,10 @@ export default function CustomerDetailPage() {
             <form onSubmit={handleSubmit} className="space-y-2">
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo de Movimiento</Label>
-                <Select value={type} onValueChange={(value) => setType(value as 'COMPRA' | 'PAGO')}>
+                <Select
+                  value={type}
+                  onValueChange={(value) => setType(value as "COMPRA" | "PAGO")}
+                >
                   <SelectTrigger id="type">
                     <SelectValue />
                   </SelectTrigger>
@@ -200,29 +227,39 @@ export default function CustomerDetailPage() {
                   {transactions.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded text-sm font-medium ${
-                          tx.type === 'COMPRA' 
-                            ? 'bg-red-100 text-red-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded text-sm font-medium ${
+                            tx.type === "COMPRA"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
                           {tx.type}
                         </span>
                       </TableCell>
-                      <TableCell className="font-semibold">${tx.amount.toLocaleString('es-AR')}</TableCell>
-                      <TableCell className="text-gray-600">{tx.description || '—'}</TableCell>
+                      <TableCell className="font-semibold">
+                        ${tx.amount.toLocaleString("es-AR")}
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        {tx.description || "—"}
+                      </TableCell>
                       <TableCell className="text-right text-sm text-gray-500">
-                        {new Date(tx.timestamp || '').toLocaleDateString('es-AR')}
+                        {new Date(tx.timestamp || "").toLocaleDateString(
+                          "es-AR"
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             ) : (
-              <p className="text-gray-500 text-center py-8">No hay movimientos registrados</p>
+              <p className="text-gray-500 text-center py-8">
+                No hay movimientos registrados
+              </p>
             )}
           </CardContent>
         </Card>
       </div>
     </main>
-  )
+  );
 }
