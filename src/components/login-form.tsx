@@ -1,5 +1,14 @@
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSnackbar } from "notistack";
+
+import { useAuth } from "@/contexts/AuthContext";
+
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
+
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -8,11 +17,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { userLogin } from "@/services/login";
 
 export function LoginForm({
   className,
@@ -20,26 +24,31 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     try {
-      const data = await userLogin({ username, password });
+      const data = await apiFetch("/auth/login/", {
+        method: "POST",
+        data: { username, password },
+      });
 
       localStorage.setItem("accessToken", data.access);
       localStorage.setItem("refreshToken", data.refresh);
-      //console.log('LOGIN OK', data)
+
       login();
       router.push("/customers");
     } catch (err: any) {
-      setError(err.message);
+      console.error(err);
+      enqueueSnackbar("Error al iniciar sesión: " + err.message, {
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }

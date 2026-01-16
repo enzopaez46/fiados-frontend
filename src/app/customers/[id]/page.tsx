@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { useParams } from "next/navigation";
+
 import {
-  getCustomer,
-  getCustomerTransactions,
-  createTransaction,
-} from "@/services/customer-detail";
-import { CustomerData } from "@/interfaces/customer";
-import { TransactionData } from "@/interfaces/transaction";
+  useCustomer,
+  useCustomerTransactions,
+  useCreateTransaction,
+} from "@/hooks/customers";
+
+import { useSnackbar } from "notistack";
+
+import { TransactionType } from "@/interfaces/transaction";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,68 +31,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AlertCircle } from "lucide-react";
-import { useSnackbar } from "notistack";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const customerId = Number(id);
 
-  const { isAuthenticated, logout } = useAuth();
-  const router = useRouter();
+  const {
+    customer,
+    isLoading: isCustomerLoading,
+    isError: isCustomerError,
+  } = useCustomer(customerId);
+  const {
+    transactions,
+    isLoading: isTransactionsLoading,
+    isError: isTransactionsError,
+  } = useCustomerTransactions(customerId);
+  const { createTransaction } = useCreateTransaction(customerId);
+
   const { enqueueSnackbar } = useSnackbar();
 
-  const [customer, setCustomer] = useState<CustomerData | null>(null);
-  const [transactions, setTransactions] = useState<TransactionData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   // formulario
-  const [type, setType] = useState<"COMPRA" | "PAGO">("COMPRA");
+  const [type, setType] = useState<TransactionType>("COMPRA");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [cust, txs] = await Promise.all([
-          getCustomer(customerId),
-          getCustomerTransactions(customerId),
-        ]);
-
-        setCustomer(cust);
-        setTransactions(txs);
-      } catch (err: any) {
-        if (err.message === "Unauthorized") {
-          logout();
-        } else {
-          setError(err.message);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, [isAuthenticated, customerId, router, logout]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     try {
-      await createTransaction(customerId, {
+      await createTransaction({
         type,
         amount: Number(amount),
         description: description || undefined,
       });
-      // recargar movimientos y customer
-      const [cust, txs] = await Promise.all([
-        getCustomer(customerId),
-        getCustomerTransactions(customerId),
-      ]);
-
-      setCustomer(cust);
-      setTransactions(txs);
 
       setAmount("");
       setDescription("");
@@ -103,8 +76,7 @@ export default function CustomerDetailPage() {
     }
   }
 
-  if (!isAuthenticated) return null;
-  if (loading) {
+  if (isCustomerLoading || isTransactionsLoading) {
     return (
       <main className="container mx-auto py-8 px-4">
         <div className="space-y-4">
@@ -114,29 +86,16 @@ export default function CustomerDetailPage() {
       </main>
     );
   }
-  if (error) {
-    return (
-      <main className="container mx-auto py-8 px-4">
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6 flex gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-red-900">Error</p>
-              <p className="text-red-800">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-    );
-  }
-  if (!customer) return null;
+  if (isCustomerError || isTransactionsError) return "Error";
 
   return (
     <main className="container mx-auto py-8 px-4">
       <div className="space-y-6">
         {/* Customer Info */}
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{customer.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {customer?.name}
+          </h1>
           <p className="text-gray-600 mt-2">Cliente ID: {customerId}</p>
         </div>
 
@@ -147,7 +106,7 @@ export default function CustomerDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-red-600">
-              ${customer.debt.toLocaleString("es-AR")}
+              ${customer?.debt.toLocaleString("es-AR")}
             </div>
             <p className="text-gray-600 text-sm mt-2">Deuda actual</p>
           </CardContent>
@@ -159,7 +118,7 @@ export default function CustomerDetailPage() {
             <CardTitle>Nuevo Movimiento</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-2">
+            <form className="space-y-2" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo de Movimiento</Label>
                 <Select
@@ -213,50 +172,42 @@ export default function CustomerDetailPage() {
             <CardTitle>Movimientos</CardTitle>
           </CardHeader>
           <CardContent>
-            {transactions.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Monto</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead className="text-right">Fecha</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Monto</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead className="text-right">Fecha</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions?.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded text-sm font-medium ${
+                          tx.type === "COMPRA"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {tx.type}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-semibold">
+                      ${tx.amount.toLocaleString("es-AR")}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {tx.description || "—"}
+                    </TableCell>
+                    <TableCell className="text-right text-sm text-gray-500">
+                      {new Date(tx.timestamp || "").toLocaleDateString("es-AR")}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded text-sm font-medium ${
-                            tx.type === "COMPRA"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {tx.type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        ${tx.amount.toLocaleString("es-AR")}
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        {tx.description || "—"}
-                      </TableCell>
-                      <TableCell className="text-right text-sm text-gray-500">
-                        {new Date(tx.timestamp || "").toLocaleDateString(
-                          "es-AR"
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <p className="text-gray-500 text-center py-8">
-                No hay movimientos registrados
-              </p>
-            )}
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>
