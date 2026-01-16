@@ -1,44 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { getCustomers } from "@/services/customers";
-import { CustomerData } from "@/interfaces/customer";
+
+import { useAllCustomers } from "@/hooks/customers";
+
 import CustomersTable from "@/components/customers-table";
 import { TableSkeleton } from "@/components/lib/table-skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Topbar } from "@/components/lib/topbar";
 
 export default function CustomersPage() {
-  const { isAuthenticated, logout } = useAuth();
   const router = useRouter();
+  const { customers, isLoading, isError } = useAllCustomers();
 
-  const [customers, setCustomers] = useState<CustomerData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadCustomers() {
-      try {
-        const data = await getCustomers();
-        setCustomers(data);
-      } catch (err: any) {
-        if (err.message === "Unauthorized") {
-          logout();
-        } else {
-          setError(err.message);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadCustomers();
-  }, [isAuthenticated, router, logout]);
-
-  if (!isAuthenticated) return null;
-  if (error) return <p>Error: {error}</p>;
+  if (isError) return <p>Error: {isError}</p>;
 
   return (
     <>
@@ -49,10 +23,10 @@ export default function CustomersPage() {
               <CardTitle>Clientes</CardTitle>
             </CardHeader>
             <CardContent>
-              {loading && <TableSkeleton columns={6} rows={10} />}
-              {!loading && (
+              {isLoading && <TableSkeleton columns={6} rows={10} />}
+              {!isLoading && (
                 <CustomersTable
-                  customers={customers}
+                  customers={customers ? customers : []}
                   onClickItem={(id) => router.push(`/customers/${id}/`)}
                 />
               )}

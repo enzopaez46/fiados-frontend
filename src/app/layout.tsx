@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import NotistackProvider from "@/providers/notistack";
+import QueryProvider from "@/providers/query";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <AuthProvider>
-          <NotistackProvider>{children}</NotistackProvider>
+          <QueryProvider>
+            <NotistackProvider>{children}</NotistackProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>
