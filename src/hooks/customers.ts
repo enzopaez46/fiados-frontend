@@ -1,7 +1,7 @@
 import { AxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { CustomerData } from "@/interfaces/customer";
+import { CustomerData, CustomerFormData } from "@/interfaces/customer";
 import { TransactionData, TransactionInput } from "@/interfaces/transaction";
 
 import { apiFetch } from "@/lib/api";
@@ -21,6 +21,45 @@ export const useCustomer = (customerId: Number) => {
     enabled: !!customerId,
   });
   return { customer: data, ...res };
+};
+
+export const useCreateCustomer = () => {
+  const queryClient = useQueryClient();
+  const { mutateAsync: createCustomer, ...res } = useMutation<
+    CustomerData,
+    AxiosError,
+    CustomerFormData
+  >({
+    mutationFn: (data: CustomerFormData) =>
+      apiFetch("/customers/", {
+        method: "POST",
+        data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+    },
+  });
+  return { createCustomer, ...res };
+};
+
+export const useUpdateCustomer = (customerId: Number) => {
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateCustomer, ...res } = useMutation<
+    CustomerData,
+    AxiosError,
+    CustomerFormData
+  >({
+    mutationFn: (data: CustomerFormData) =>
+      apiFetch(`/customers/${customerId}/`, {
+        method: "PUT",
+        data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customer", customerId] });
+    },
+  });
+  return { updateCustomer, ...res };
 };
 
 export const useCustomerTransactions = (customerId: Number) => {

@@ -2,32 +2,42 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 
 import { useCustomer, useCustomerTransactions } from "@/hooks/customers";
 
 import TransactionsTable from "@/components/transactions-table";
 import TransactionForm from "@/components/transaction-form";
+import CustomerForm from "@/components/customer-form";
 
 import { DrawerComponent } from "@/components/lib/drawer";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+type SwitchFormType = "NEW_TRANSACTION" | "UPDATE_CUSTOMER";
+
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const customerId = Number(id);
 
   const [open, setOpen] = useState(false);
+  const [switchForm, setSwitchForm] =
+    useState<SwitchFormType>("NEW_TRANSACTION");
+
+  const handleDrawer = (formType: SwitchFormType) => {
+    setSwitchForm(formType);
+    setOpen(true);
+  };
 
   const {
     customer,
-    isLoading: isCustomerLoading,
+    isPending: isCustomerLoading,
     isError: isCustomerError,
   } = useCustomer(customerId);
   const {
     transactions,
-    isLoading: isTransactionsLoading,
+    isPending: isTransactionsLoading,
     isError: isTransactionsError,
   } = useCustomerTransactions(customerId);
 
@@ -51,12 +61,26 @@ export default function CustomerDetailPage() {
           <h1 className="text-3xl font-bold tracking-tight">
             {customer?.name}
           </h1>
-          <p className="text-gray-600 mt-2">Cliente ID: {customerId}</p>
+          <p className="text-gray-600 mt-2">Telefono: {customer?.phonenumber}</p>
         </div>
-        <Button variant={"outline"} size={"lg"} onClick={() => setOpen(true)}>
-          <Plus />
-          Nuevo Movimiento
-        </Button>
+        <div className="space-x-2">
+          <Button
+            variant={"outline"}
+            size={"lg"}
+            onClick={() => handleDrawer("NEW_TRANSACTION")}
+          >
+            <Plus />
+            Nuevo Movimiento
+          </Button>
+          <Button
+            variant={"secondary"}
+            size={"lg"}
+            onClick={() => handleDrawer("UPDATE_CUSTOMER")}
+          >
+            <Edit />
+            Editar Cliente
+          </Button>
+        </div>
 
         {/* Debt Card */}
         <Card>
@@ -90,10 +114,22 @@ export default function CustomerDetailPage() {
           title="Nuevo Movimiento"
           description={customer?.name}
         >
-          <TransactionForm
-            customerId={customerId}
-            onClose={() => setOpen(false)}
-          />
+          {switchForm === "NEW_TRANSACTION" ? (
+            <TransactionForm
+              customerId={customerId}
+              onClose={() => setOpen(false)}
+            />
+          ) : (
+            <CustomerForm
+              customerId={customerId}
+              initial={{
+                name: customer?.name || "",
+                phonenumber: customer?.phonenumber || "",
+                active: customer?.active || true,
+              }}
+              onClose={() => setOpen(false)}
+            />
+          )}
         </DrawerComponent>
       </div>
     </main>
