@@ -1,17 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
+import { Plus } from "lucide-react";
 
 import { useCustomer, useCustomerTransactions } from "@/hooks/customers";
 
 import TransactionsTable from "@/components/transactions-table";
 import TransactionForm from "@/components/transaction-form";
 
+import { DrawerComponent } from "@/components/lib/drawer";
+
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const customerId = Number(id);
+
+  const [open, setOpen] = useState(false);
 
   const {
     customer,
@@ -46,6 +53,10 @@ export default function CustomerDetailPage() {
           </h1>
           <p className="text-gray-600 mt-2">Cliente ID: {customerId}</p>
         </div>
+        <Button variant={"outline"} size={"lg"} onClick={() => setOpen(true)}>
+          <Plus />
+          Nuevo Movimiento
+        </Button>
 
         {/* Debt Card */}
         <Card>
@@ -62,16 +73,6 @@ export default function CustomerDetailPage() {
           </CardContent>
         </Card>
 
-        {/* New Transaction Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Nuevo Movimiento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TransactionForm customerId={customerId} />
-          </CardContent>
-        </Card>
-
         {/* Transactions */}
         <Card>
           <CardHeader>
@@ -81,6 +82,19 @@ export default function CustomerDetailPage() {
             <TransactionsTable transactions={transactions || []} />
           </CardContent>
         </Card>
+
+        {/* Drawer - New Transaction Form */}
+        <DrawerComponent
+          open={open}
+          onClose={() => setOpen(false)}
+          title="Nuevo Movimiento"
+          description={customer?.name}
+        >
+          <TransactionForm
+            customerId={customerId}
+            onClose={() => setOpen(false)}
+          />
+        </DrawerComponent>
       </div>
     </main>
   );
