@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useParams } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
 
 import {
   useCustomer,
@@ -32,6 +32,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface TransactionFormData {
+  type: TransactionType;
+  amount: number;
+  description?: string;
+}
+
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const customerId = Number(id);
@@ -50,23 +56,30 @@ export default function CustomerDetailPage() {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  // formulario
-  const [type, setType] = useState<TransactionType>("COMPRA");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
+  // react-hook-form
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<TransactionFormData>({
+    defaultValues: {
+      type: "COMPRA",
+      amount: undefined,
+      description: "",
+    },
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
+  async function onSubmit(data: TransactionFormData) {
     try {
       await createTransaction({
-        type,
-        amount: Number(amount),
-        description: description || undefined,
+        type: data.type,
+        amount: data.amount,
+        description: data.description || undefined,
       });
 
-      setAmount("");
-      setDescription("");
+      reset();
       enqueueSnackbar("Movimiento creado con éxito", { variant: "success" });
     } catch (err: any) {
       console.error(err);
@@ -118,21 +131,24 @@ export default function CustomerDetailPage() {
             <CardTitle>Nuevo Movimiento</CardTitle>
           </CardHeader>
           <CardContent>
-            <form className="space-y-2" onSubmit={handleSubmit}>
+            <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo de Movimiento</Label>
-                <Select
-                  value={type}
-                  onValueChange={(value) => setType(value as "COMPRA" | "PAGO")}
-                >
-                  <SelectTrigger id="type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="COMPRA">Compra</SelectItem>
-                    <SelectItem value="PAGO">Pago</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="COMPRA">Compra</SelectItem>
+                        <SelectItem value="PAGO">Pago</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
 
               <div className="space-y-2">
@@ -141,11 +157,13 @@ export default function CustomerDetailPage() {
                   id="amount"
                   type="number"
                   placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
                   step="0.01"
                   min="0"
+                  {...register("amount", {
+                    required: "El monto es requerido",
+                    valueAsNumber: true,
+                    min: { value: 0, message: "El monto debe ser mayor a 0" },
+                  })}
                 />
               </div>
 
@@ -154,13 +172,12 @@ export default function CustomerDetailPage() {
                 <Input
                   id="description"
                   placeholder="Ej: Detergente, Arroz..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  {...register("description")}
                 />
               </div>
 
-              <Button type="submit" className="w-full">
-                Guardar Movimiento
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Guardando..." : "Guardar Movimiento"}
               </Button>
             </form>
           </CardContent>
