@@ -36,7 +36,11 @@ export default function CustomersTable({
               className="cursor-pointer"
             >
               <TableCell>{customer.name}</TableCell>
-              <TableCell className="font-semibold">{customer.debt}</TableCell>
+              <TableCell
+                className={`font-semibold ${customer && customer?.debt > 0 ? "text-red-600" : "text-green-600"}`}
+              >
+                ${customer?.debt.toLocaleString("es-AR")}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
