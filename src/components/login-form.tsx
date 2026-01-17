@@ -2,8 +2,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "notistack";
 
-import { useAuth } from "@/contexts/AuthContext";
-
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
@@ -26,7 +24,6 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -42,7 +39,6 @@ export function LoginForm({
       localStorage.setItem("accessToken", data.access);
       localStorage.setItem("refreshToken", data.refresh);
 
-      login();
       router.push("/customers");
     } catch (err: any) {
       console.error(err);

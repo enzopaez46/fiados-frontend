@@ -9,11 +9,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
 export function Topbar() {
   const router = useRouter();
-  const { logout } = useAuth();
+
+  function logout() {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    router.push("/login");
+  }
 
   return (
     <header className="border-b border-border bg-background sticky top-0 z-50">

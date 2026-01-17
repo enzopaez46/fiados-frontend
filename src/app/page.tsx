@@ -1,23 +1,24 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 import { Topbar } from "@/components/lib/topbar";
 
 export default function Home() {
   const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      router.push("/customers");
+    } else {
+      router.push("/login");
+    }
+  }, []);
   return (
     <main>
       <Topbar />
-      <div className="container mx-auto py-8 px-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Fiados App</h1>
-          <p className="text-gray-600 mt-2">Frontend conectado</p>
-        </div>
-        <div className="mt-6">
-          <Button onClick={() => router.push("/customers")}>Customers</Button>
-        </div>
-      </div>
     </main>
   );
 }
