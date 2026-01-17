@@ -64,62 +64,79 @@ export default function CustomerForm({
 
   return (
     <Form {...form}>
-      <form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="space-y-2">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre</FormLabel>
-                <FormControl>
-                  <Input {...field} value={field.value ?? ""} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+      <form
+        className="flex flex-col h-full"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="space-y-3 flex-1">
+          <div className="space-y-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="space-y-2">
+            <FormField
+              control={form.control}
+              name="phonenumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Teléfono (opcional)</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="space-y-2 mt-6">
+            <FormField
+              control={form.control}
+              name="active"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value ?? true}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="!mt-0">Cliente Activo</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         <div className="space-y-2">
-          <FormField
-            control={form.control}
-            name="phonenumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Teléfono</FormLabel>
-                <FormControl>
-                  <Input {...field} value={field.value ?? ""} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <Button
+            type="submit"
+            className="w-full"
+            size={"lg"}
+            disabled={isLoadingCreate || isLoadingUpdate}
+          >
+            {isLoadingCreate || isLoadingUpdate
+              ? "Guardando..."
+              : "Guardar Cliente"}
+          </Button>
+          <Button
+            type="button"
+            className="w-full"
+            size={"lg"}
+            variant={"outline"}
+            disabled={isLoadingCreate || isLoadingUpdate}
+            onClick={onClose}
+          >
+            Cerrar
+          </Button>
         </div>
-        <div className="space-y-2 mt-6">
-          <FormField
-            control={form.control}
-            name="active"
-            render={({ field }) => (
-              <FormItem className="flex items-center space-x-2 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value ?? true}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="!mt-0">Cliente Activo</FormLabel>
-              </FormItem>
-            )}
-          />
-        </div>
-        <Button
-          type="submit"
-          className="w-full mt-2"
-          size={"lg"}
-          disabled={isLoadingCreate || isLoadingUpdate}
-        >
-          {isLoadingCreate || isLoadingUpdate
-            ? "Guardando..."
-            : "Guardar Cliente"}
-        </Button>
       </form>
     </Form>
   );

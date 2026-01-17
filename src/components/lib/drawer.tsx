@@ -25,15 +25,15 @@ export function DrawerComponent({
 }: DrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:w-[420px]">
+      <SheetContent side="right" className="w-full sm:w-[420px] flex flex-col p-0">
         {(title || description) && (
-          <SheetHeader>
+          <SheetHeader className="px-4 pt-6">
             {title && <SheetTitle>{title}</SheetTitle>}
             {description && <SheetDescription>{description}</SheetDescription>}
           </SheetHeader>
         )}
 
-        <div className="my-2 mx-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-4 pb-6">{children}</div>
       </SheetContent>
     </Sheet>
   );

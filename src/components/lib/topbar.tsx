@@ -23,8 +23,8 @@ export function Topbar() {
     <header className="border-b border-border bg-background sticky top-0 z-50">
       <div className="flex items-center justify-between h-16 px-6">
         {/* Nombre de la aplicación a la izquierda */}
-        <div className="text-xl font-bold text-primary">Fiados App</div>
-
+        <div className="text-xl font-bold text-primary">Fiados App 🍉</div>
+ 
         {/* Botón de settings a la derecha */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

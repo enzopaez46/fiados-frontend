@@ -77,8 +77,8 @@ export default function TransactionForm({
     }
   }
   return (
-    <div>
-      <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+    <form className="flex flex-col h-full" onSubmit={handleSubmit(onSubmit)}>
+      <div className="space-y-3 flex-1">
         <div className="space-y-2">
           <Label htmlFor="type">Tipo de Movimiento</Label>
           <Controller
@@ -86,7 +86,7 @@ export default function TransactionForm({
             control={control}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="type">
+                <SelectTrigger id="type" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -122,7 +122,8 @@ export default function TransactionForm({
             {...register("description")}
           />
         </div>
-
+      </div>
+      <div className="space-y-2">
         <Button
           type="submit"
           className="w-full mt-2"
@@ -131,7 +132,17 @@ export default function TransactionForm({
         >
           {isSubmitting ? "Guardando..." : "Guardar Movimiento"}
         </Button>
-      </form>
-    </div>
+        <Button
+          type="button"
+          className="w-full"
+          size={"lg"}
+          variant={"outline"}
+          disabled={isSubmitting}
+          onClick={onClose}
+        >
+          Cerrar
+        </Button>
+      </div>
+    </form>
   );
 }

@@ -10,6 +10,7 @@ import TransactionsTable from "@/components/transactions-table";
 import TransactionForm from "@/components/transaction-form";
 import CustomerForm from "@/components/customer-form";
 
+import { TableSkeleton } from "@/components/lib/table-skeleton";
 import { DrawerComponent } from "@/components/lib/drawer";
 
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ export default function CustomerDetailPage() {
     isError: isTransactionsError,
   } = useCustomerTransactions(customerId);
 
-  if (isCustomerLoading || isTransactionsLoading) {
+  if (isCustomerLoading) {
     return (
       <main className="container mx-auto py-8 px-4">
         <div className="space-y-4">
@@ -61,7 +62,9 @@ export default function CustomerDetailPage() {
           <h1 className="text-3xl font-bold tracking-tight">
             {customer?.name}
           </h1>
-          <p className="text-gray-600 mt-2">Telefono: {customer?.phonenumber}</p>
+          <p className="text-gray-600 mt-2">
+            Telefono: {customer?.phonenumber}
+          </p>
         </div>
         <div className="space-x-2">
           <Button
@@ -98,20 +101,28 @@ export default function CustomerDetailPage() {
         </Card>
 
         {/* Transactions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Movimientos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TransactionsTable transactions={transactions || []} />
-          </CardContent>
-        </Card>
+        {isTransactionsLoading ? (
+          <TableSkeleton columns={4} rows={4} />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Movimientos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TransactionsTable transactions={transactions || []} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Drawer - New Transaction Form */}
         <DrawerComponent
           open={open}
           onClose={() => setOpen(false)}
-          title="Nuevo Movimiento"
+          title={
+            switchForm === "NEW_TRANSACTION"
+              ? "Nuevo Movimiento"
+              : "Editar Cliente"
+          }
           description={customer?.name}
         >
           {switchForm === "NEW_TRANSACTION" ? (
