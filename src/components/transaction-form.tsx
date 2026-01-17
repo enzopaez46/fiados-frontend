@@ -32,11 +32,13 @@ interface TransactionFormData {
 interface TransactionFormProps {
   //initial?: TransactionInput;
   customerId: number;
+  onClose?: () => void; // callback para cerrar el drawer despues de crear la transaccion
 }
 
 export default function TransactionForm({
   //initial,
   customerId,
+  onClose,
 }: TransactionFormProps) {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -66,6 +68,7 @@ export default function TransactionForm({
 
       reset();
       enqueueSnackbar("Movimiento creado con éxito", { variant: "success" });
+      onClose && onClose();
     } catch (err: any) {
       console.error(err);
       enqueueSnackbar(err.message || "Error al crear el movimiento", {
@@ -75,7 +78,7 @@ export default function TransactionForm({
   }
   return (
     <div>
-      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <Label htmlFor="type">Tipo de Movimiento</Label>
           <Controller
@@ -120,7 +123,12 @@ export default function TransactionForm({
           />
         </div>
 
-        <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="w-full mt-2"
+          size={"lg"}
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Guardando..." : "Guardar Movimiento"}
         </Button>
       </form>
