@@ -1,15 +1,22 @@
 import { AxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import queryStringParser from "@/utils/queryStringParser";
 
 import { CustomerData, CustomerFormData } from "@/interfaces/customer";
 import { TransactionData, TransactionInput } from "@/interfaces/transaction";
 
 import { apiFetch } from "@/lib/api";
 
-export const useAllCustomers = () => {
+export type CustomerFilters = {
+  name?: string;
+  active: boolean;
+};
+
+export const useAllCustomers = (filters: CustomerFilters) => {
+  const queryString = queryStringParser({ ...filters });
   const { data, ...res } = useQuery<CustomerData[], AxiosError>({
-    queryKey: ["customers"],
-    queryFn: () => apiFetch("/customers/"),
+    queryKey: ["customers", queryString],
+    queryFn: () => apiFetch(`/customers/?${queryString}`),
   });
   return { customers: data, ...res };
 };
@@ -65,12 +72,11 @@ export const useUpdateCustomer = (customerId: Number) => {
 export const useCustomerTransactions = (customerId: Number) => {
   const { data, ...res } = useQuery<TransactionData[], AxiosError>({
     queryKey: ["customer-transactions", customerId],
-    queryFn: () =>
-      apiFetch(`/customers/${customerId}/transactions/`),
+    queryFn: () => apiFetch(`/customers/${customerId}/transactions/`),
     enabled: !!customerId,
   });
   return { transactions: data, ...res };
-}
+};
 
 export const useCreateTransaction = (customerId: Number) => {
   const queryClient = useQueryClient();
@@ -87,7 +93,9 @@ export const useCreateTransaction = (customerId: Number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["customer", customerId] });
-      queryClient.invalidateQueries({ queryKey: ["customer-transactions", customerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["customer-transactions", customerId],
+      });
     },
   });
   return { createTransaction, ...res };
