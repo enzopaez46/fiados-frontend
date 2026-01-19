@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAllCustomers, CustomerFilters } from "@/hooks/customers";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce } from "@/hooks/debounce";
 
 import queryStringParser from "@/utils/queryStringParser";
 
