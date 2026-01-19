@@ -1,4 +1,4 @@
-import { api } from '@/utils/interceptor'; // tu instancia de axios
+import { api } from '@/utils/interceptor'; // instancia de axios cos su interceptor
 
 export async function apiFetch(
   endpoint: string,
