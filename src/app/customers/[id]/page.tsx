@@ -123,7 +123,7 @@ export default function CustomerDetailPage() {
               ? "Nuevo Movimiento"
               : "Editar Cliente"
           }
-          description={customer?.name}
+          description={switchForm === "NEW_TRANSACTION" ? customer?.name : ""}
         >
           {switchForm === "NEW_TRANSACTION" ? (
             <TransactionForm

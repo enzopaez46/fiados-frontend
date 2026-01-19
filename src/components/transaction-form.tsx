@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { useCreateTransaction } from "@/hooks/customers";
 
@@ -10,7 +10,7 @@ import { useSnackbar } from "notistack";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 
 /*
 interface TransactionFormData {
@@ -44,13 +51,7 @@ export default function TransactionForm({
 
   const { createTransaction } = useCreateTransaction(customerId);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { isSubmitting },
-  } = useForm<TransactionInput>({
+  const form = useForm<TransactionInput>({
     defaultValues: {
       type: "COMPRA",
       amount: undefined,
@@ -66,7 +67,7 @@ export default function TransactionForm({
         description: data.description || undefined,
       });
 
-      reset();
+      form.reset();
       enqueueSnackbar("Movimiento creado con éxito", { variant: "success" });
       onClose && onClose();
     } catch (err: any) {
@@ -76,73 +77,108 @@ export default function TransactionForm({
       });
     }
   }
+
   return (
-    <form className="flex flex-col h-full" onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-3 flex-1">
-        <div className="space-y-2">
-          <Label htmlFor="type">Tipo de Movimiento</Label>
-          <Controller
-            name="type"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="type" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="COMPRA">Compra</SelectItem>
-                  <SelectItem value="PAGO">Pago</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
+    <Form {...form}>
+      <form
+        className="flex flex-col h-full"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="space-y-3 flex-1">
+          <div className="space-y-2">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Movimiento</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="COMPRA">Compra</SelectItem>
+                        <SelectItem value="PAGO">Pago</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="amount">Monto</Label>
-          <Input
-            id="amount"
-            type="number"
-            placeholder="0"
-            step="1.00"
-            min="0"
-            {...register("amount", {
-              required: "El monto es requerido",
-              valueAsNumber: true,
-              min: { value: 0, message: "El monto debe ser mayor a 0" },
-            })}
-          />
-        </div>
+          <div className="space-y-2">
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Monto</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      step="1.00"
+                      min="0"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value
+                            ? parseFloat(e.target.value)
+                            : undefined,
+                        )
+                      }
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="description">Descripción (opcional)</Label>
-          <Input
-            id="description"
-            placeholder="Ej: Detergente, Arroz..."
-            {...register("description")}
-          />
+          <div className="space-y-2">
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descripción (opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Ej: Detergente, Arroz..."
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
-      </div>
-      <div className="space-y-2">
-        <Button
-          type="submit"
-          className="w-full mt-2"
-          size={"lg"}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Guardando..." : "Guardar Movimiento"}
-        </Button>
-        <Button
-          type="button"
-          className="w-full"
-          size={"lg"}
-          variant={"outline"}
-          disabled={isSubmitting}
-          onClick={onClose}
-        >
-          Cerrar
-        </Button>
-      </div>
-    </form>
+        <div className="space-y-2">
+          <Button
+            type="submit"
+            className="w-full"
+            size={"lg"}
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting
+              ? "Guardando..."
+              : "Guardar Movimiento"}
+          </Button>
+          <Button
+            type="button"
+            className="w-full"
+            size={"lg"}
+            variant={"outline"}
+            disabled={form.formState.isSubmitting}
+            onClick={onClose}
+          >
+            Cerrar
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
