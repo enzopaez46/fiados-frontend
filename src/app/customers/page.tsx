@@ -48,11 +48,6 @@ export default function CustomersPage() {
     router.push(`?${queryString}`);
   }, [debouncedFilters, router]);
 
-  // Synchronize url if changes manually
-  useEffect(() => {
-    setFilters(initialFilters);
-  }, [searchParams]);
-
   if (isError) return <p>Error</p>;
 
   return (
