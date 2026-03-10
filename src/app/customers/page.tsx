@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAllCustomers, CustomerFilters } from "@/hooks/customers";
@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function CustomersPage() {
+function CustomersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -112,5 +112,13 @@ export default function CustomersPage() {
         <CustomerForm onClose={() => setOpen(false)} />
       </DrawerComponent>
     </>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CustomersPage />
+    </Suspense>
   );
 }
