@@ -56,7 +56,7 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
-        className
+        className,
       )}
       {...props}
     />
@@ -75,7 +75,6 @@ function PaginationPrevious({
       {...props}
     >
       <ChevronLeft />
-      <span>Anterior</span>
     </PaginationLink>
   );
 }
@@ -91,7 +90,6 @@ function PaginationNext({
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}
     >
-      <span>Siguiente</span>
       <ChevronRight />
     </PaginationLink>
   );

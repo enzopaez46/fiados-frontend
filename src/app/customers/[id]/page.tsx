@@ -28,22 +28,21 @@ import {
 type SwitchFormType = "NEW_TRANSACTION" | "UPDATE_CUSTOMER";
 
 function getVisiblePages(currentPage: number, totalPages: number) {
-  if (totalPages <= 5) {
+  if (totalPages <= 4) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
 
   if (currentPage <= 3) {
-    return [1, 2, 3, 4, "ellipsis", totalPages] as const;
+    return [1, 2, 3, "ellipsis", totalPages] as const;
   }
 
   if (currentPage >= totalPages - 2) {
-    return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages] as const;
+    return [1, "ellipsis", totalPages - 2, totalPages - 1, totalPages] as const;
   }
 
   return [
     1,
     "ellipsis",
-    currentPage - 1,
     currentPage,
     currentPage + 1,
     "ellipsis",
