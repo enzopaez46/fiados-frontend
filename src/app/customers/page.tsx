@@ -35,22 +35,21 @@ import {
 } from "@/components/ui/select";
 
 function getVisiblePages(currentPage: number, totalPages: number) {
-  if (totalPages <= 5) {
+  if (totalPages <= 4) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
 
   if (currentPage <= 3) {
-    return [1, 2, 3, 4, "ellipsis", totalPages] as const;
+    return [1, 2, 3, "ellipsis", totalPages] as const;
   }
 
   if (currentPage >= totalPages - 2) {
-    return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages] as const;
+    return [1, "ellipsis", totalPages - 2, totalPages - 1, totalPages] as const;
   }
 
   return [
     1,
     "ellipsis",
-    currentPage - 1,
     currentPage,
     currentPage + 1,
     "ellipsis",
@@ -67,7 +66,10 @@ function CustomersPage() {
   const initialFilters: CustomerFilters = {
     name: searchParams.get("name") ?? "",
     active: searchParams.get("active") === "false" ? false : true,
-    page: Number(searchParams.get("page")) > 0 ? Number(searchParams.get("page")) : 1,
+    page:
+      Number(searchParams.get("page")) > 0
+        ? Number(searchParams.get("page"))
+        : 1,
   };
   // Local state for filters
   const [filters, setFilters] = useState<CustomerFilters>(initialFilters);
@@ -78,11 +80,15 @@ function CustomersPage() {
       ...filters,
       name: debouncedName,
     }),
-    [filters, debouncedName]
+    [filters, debouncedName],
   );
-  const queryString = useMemo(() => queryStringParser(queryFilters), [queryFilters]);
+  const queryString = useMemo(
+    () => queryStringParser(queryFilters),
+    [queryFilters],
+  );
 
-  const { customers, pagination, isPending, isError } = useAllCustomers(queryFilters);
+  const { customers, pagination, isPending, isError } =
+    useAllCustomers(queryFilters);
 
   // Sincronize url after debounce
   useEffect(() => {
@@ -121,7 +127,11 @@ function CustomersPage() {
                 <Input
                   value={filters.name ?? ""}
                   onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, name: e.target.value, page: 1 }))
+                    setFilters((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                      page: 1,
+                    }))
                   }
                   placeholder="Buscar"
                   className="max-w-60"
@@ -174,6 +184,7 @@ function CustomersPage() {
                             <PaginationLink
                               isActive={page === currentPage}
                               onClick={() => handlePageChange(page)}
+                              size={"sm"}
                             >
                               {page}
                             </PaginationLink>
