@@ -8,7 +8,11 @@ import {
   PaginatedCustomersResponse,
   PaginationData,
 } from "@/interfaces/customer";
-import { TransactionData, TransactionInput } from "@/interfaces/transaction";
+import {
+  PaginatedTransactionsResponse,
+  TransactionData,
+  TransactionInput,
+} from "@/interfaces/transaction";
 
 import { apiFetch } from "@/lib/api";
 
