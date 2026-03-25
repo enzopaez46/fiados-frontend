@@ -1,3 +1,5 @@
+import { PaginationData } from "./customer";
+
 export type TransactionType = "COMPRA" | "PAGO";
 
 export interface TransactionData {
@@ -6,6 +8,11 @@ export interface TransactionData {
   amount: number;
   description?: string | null;
   timestamp: string;
+}
+
+export interface PaginatedTransactionsResponse {
+  data: TransactionData[];
+  pagination: PaginationData;
 }
 
 export interface TransactionInput {

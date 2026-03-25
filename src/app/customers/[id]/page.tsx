@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { Plus, Edit } from "lucide-react";
 
-import { useCustomer, useCustomerTransactions } from "@/hooks/customers";
+import { useCustomer, useCustomerTransactions, type TransactionFilters } from "@/hooks/customers";
 
 import TransactionsTable from "@/components/transactions-table";
 import TransactionForm from "@/components/transaction-form";
@@ -15,8 +15,41 @@ import { DrawerComponent } from "@/components/lib/drawer";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type SwitchFormType = "NEW_TRANSACTION" | "UPDATE_CUSTOMER";
+
+function getVisiblePages(currentPage: number, totalPages: number) {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, "ellipsis", totalPages] as const;
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages] as const;
+  }
+
+  return [
+    1,
+    "ellipsis",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "ellipsis",
+    totalPages,
+  ] as const;
+}
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
@@ -25,6 +58,14 @@ export default function CustomerDetailPage() {
   const [open, setOpen] = useState(false);
   const [switchForm, setSwitchForm] =
     useState<SwitchFormType>("NEW_TRANSACTION");
+  const [transactionPage, setTransactionPage] = useState(1);
+
+  const transactionFilters: TransactionFilters = useMemo(
+    () => ({
+      page: transactionPage,
+    }),
+    [transactionPage]
+  );
 
   const handleDrawer = (formType: SwitchFormType) => {
     setSwitchForm(formType);
@@ -38,9 +79,10 @@ export default function CustomerDetailPage() {
   } = useCustomer(customerId);
   const {
     transactions,
+    pagination,
     isPending: isTransactionsLoading,
     isError: isTransactionsError,
-  } = useCustomerTransactions(customerId);
+  } = useCustomerTransactions(customerId, transactionFilters);
 
   if (isCustomerLoading) {
     return (
@@ -110,6 +152,52 @@ export default function CustomerDetailPage() {
             </CardHeader>
             <CardContent>
               <TransactionsTable transactions={transactions || []} />
+
+              {pagination && pagination.total_pages > 1 && (
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setTransactionPage((p) => Math.max(p - 1, 1))
+                          }
+                          disabled={!pagination.has_previous}
+                        />
+                      </PaginationItem>
+
+                      {getVisiblePages(
+                        pagination.page,
+                        pagination.total_pages
+                      ).map((page, index) => (
+                        <PaginationItem key={`${page}-${index}`}>
+                          {page === "ellipsis" ? (
+                            <PaginationEllipsis />
+                          ) : (
+                            <PaginationLink
+                              isActive={page === pagination.page}
+                              onClick={() => setTransactionPage(page)}
+                            >
+                              {page}
+                            </PaginationLink>
+                          )}
+                        </PaginationItem>
+                      ))}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setTransactionPage((p) =>
+                              Math.min(p + 1, pagination.total_pages)
+                            )
+                          }
+                          disabled={!pagination.has_next}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
