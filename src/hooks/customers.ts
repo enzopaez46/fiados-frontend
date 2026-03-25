@@ -2,7 +2,12 @@ import { AxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import queryStringParser from "@/utils/queryStringParser";
 
-import { CustomerData, CustomerFormData } from "@/interfaces/customer";
+import {
+  CustomerData,
+  CustomerFormData,
+  PaginatedCustomersResponse,
+  PaginationData,
+} from "@/interfaces/customer";
 import { TransactionData, TransactionInput } from "@/interfaces/transaction";
 
 import { apiFetch } from "@/lib/api";
@@ -10,15 +15,20 @@ import { apiFetch } from "@/lib/api";
 export type CustomerFilters = {
   name?: string;
   active: boolean;
+  page?: number;
 };
 
 export const useAllCustomers = (filters: CustomerFilters) => {
   const queryString = queryStringParser({ ...filters });
-  const { data, ...res } = useQuery<CustomerData[], AxiosError>({
+  const { data, ...res } = useQuery<PaginatedCustomersResponse, AxiosError>({
     queryKey: ["customers", queryString],
     queryFn: () => apiFetch(`/customers/?${queryString}`),
   });
-  return { customers: data, ...res };
+  return {
+    customers: data?.data,
+    pagination: data?.pagination as PaginationData | undefined,
+    ...res,
+  };
 };
 
 export const useCustomer = (customerId: Number) => {
@@ -69,13 +79,25 @@ export const useUpdateCustomer = (customerId: Number) => {
   return { updateCustomer, ...res };
 };
 
-export const useCustomerTransactions = (customerId: Number) => {
-  const { data, ...res } = useQuery<TransactionData[], AxiosError>({
-    queryKey: ["customer-transactions", customerId],
-    queryFn: () => apiFetch(`/customers/${customerId}/transactions/`),
+export type TransactionFilters = {
+  page?: number;
+};
+
+export const useCustomerTransactions = (
+  customerId: Number,
+  filters?: TransactionFilters
+) => {
+  const queryString = queryStringParser(filters ?? {});
+  const { data, ...res } = useQuery<PaginatedTransactionsResponse, AxiosError>({
+    queryKey: ["customer-transactions", customerId, queryString],
+    queryFn: () => apiFetch(`/customers/${customerId}/transactions/?${queryString}`),
     enabled: !!customerId,
   });
-  return { transactions: data, ...res };
+  return {
+    transactions: data?.data,
+    pagination: data?.pagination as PaginationData | undefined,
+    ...res,
+  };
 };
 
 export const useCreateTransaction = (customerId: Number) => {
